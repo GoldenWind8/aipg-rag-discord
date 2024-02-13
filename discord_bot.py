@@ -17,7 +17,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Bot command: Translate text to English
 @bot.command()
 async def question(ctx, *, question):
     try:

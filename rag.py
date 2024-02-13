@@ -5,8 +5,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
-
-
+from tools.prompt_templates import rag_prompt_template
 
 class RetrievalAugmentedGeneration:
     def __init__(self, api_base, text_file_path):
@@ -20,6 +19,13 @@ class RetrievalAugmentedGeneration:
         embeddings = OpenAIEmbeddings() #TODO REPLACE HuggingFaceBgeEmbeddings(model_name="BAAI/bge-small-en-v1.5")
         return Chroma.from_documents(texts, embeddings).as_retriever()
 
+    def setup_qa_chain(self):
+        llm = ChatOpenAI(openai_api_base=self.api_base, openai_api_key=self.api_base, max_tokens=1024)
+        return RetrievalQA.from_chain_type(llm=llm, chain_type="stuff",
+                                           retriever=self.vector_store,
+                                           chain_type_kwargs={"prompt": rag_prompt_template},
+                                           return_source_documents = True)
+
     def add_documents(self, texts):
         # Split the input texts into smaller chunks
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50, length_function=len)
@@ -27,11 +33,6 @@ class RetrievalAugmentedGeneration:
 
         # Add these chunks to the vector store
         self.vector_store.add_documents(split_texts)
-
-    def setup_qa_chain(self):
-        llm = ChatOpenAI(openai_api_base=self.api_base, openai_api_key=self.api_base, max_tokens=1024)
-        return RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=self.vector_store, return_source_documents=False)
-
 
     def load_texts(self, text_file_path):
         loader = TextLoader(text_file_path)
