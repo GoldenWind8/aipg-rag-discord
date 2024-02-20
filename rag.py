@@ -20,7 +20,7 @@ class RetrievalAugmentedGeneration:
         return Chroma.from_documents(texts, embeddings).as_retriever()
 
     def setup_qa_chain(self):
-        llm = ChatOpenAI(openai_api_base=self.api_base, openai_api_key=self.api_base, max_tokens=1024)
+        llm = ChatOpenAI(model_name="gpt-4")
         return RetrievalQA.from_chain_type(llm=llm, chain_type="stuff",
                                            retriever=self.vector_store,
                                            chain_type_kwargs={"prompt": rag_prompt_template},
